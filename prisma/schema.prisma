@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String
+  phone                 String
+  email                 String   @unique
+  password              String
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  user_type             UserType     
+  homes                 Home[]
+  realtor_messages      Message[] @relation("realtor_messages")  
+  buyer_messages        Message[] @relation("buyer_messages")
+}
+
+model Home {
+  id                    String      @id @default(auto()) @map("_id") @db.ObjectId
+  address               String
+  number_of_bedrooms    Int
+  number_of_bathrooms   Int
+  city                  String
+  listed_date           DateTime    @default(now())
+  price                 Float
+  land_size             Float
+  propertyType          PropertyType
+  created_at            DateTime    @default(now())
+  updated_at            DateTime    @updatedAt
+  images                Image[]
+  realtor               User        @relation(fields: [realtorId], references: [id])
+  realtorId             String      @db.ObjectId
+  messages              Message[]
+}
+
+model Image {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  url                   String
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  home                  Home     @relation(fields: [homeId], references: [id])
+  homeId                String   @db.ObjectId
+}
+
+model Message {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  message               String
+  home                  Home     @relation(fields: [homeId], references: [id])
+  homeId                String   @db.ObjectId
+  realtor               User     @relation("realtor_messages",fields: [realtorId], references: [id])
+  realtorId             String   @db.ObjectId
+  buyer                 User     @relation("buyer_messages",fields: [buyerId], references: [id])
+  buyerId               String   @db.ObjectId
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  CONDO
+}
+
+enum UserType {
+  BUYER
+  REALTOR
+  ADMIN
+}
